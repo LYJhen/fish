@@ -64,16 +64,24 @@ void setup() {
   // badY=
 
   //bubble init place
+  image(bubble,bubbleX,bubbleY);
   // bubbleX=
+    bubbleX = random(1600);
   // bubbleY=
-
+    bubbleY = random(900);
   //rush init place
+   image(rush,rushX,rushY);
   //rushX=
+    rushX = random(1600);
   //rushY=
+    rushY = random(900);
 
   //magnet init place
+  image(magnet,magnetX,magnetY);
   //magnetX=
+    magnetX = random(1600);
   // magnetY=
+    magnetY = random(900);
 
   //font
   // font=createFont("font/font.ttf", 56);
