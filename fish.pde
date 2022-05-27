@@ -1,6 +1,9 @@
-PImage gamestart, background, bad, bubble, life, magnet, rush;
+PImage gamestart, background, bad, bubbleing, life, magneting, rushing, win, lose;
 PImage fishS, fishM, fishL;
-PImage rushfish, magnetfish, bubblefish;
+PImage baddown, badleft, badright, badup;
+PImage rushfishS, rushfishM, rushfishL;
+PImage magnetfishS, magnetfishM, magnetfishL;
+PImage bubblefishS, bubblefishM, bubblefishL;
 PFont font;
 
 //gamestate
@@ -25,19 +28,35 @@ float fishMSize=200;
 float fishLSize=250;
 //fishx,y
 float fishX, fishY;
-//bad fishx,y
-float badX, badY;
 //bubblex,y
 float bubbleX, bubbleY;
+Bubble bubble;
 //rushx,y
 float rushX, rushY;
+Rush rush;
 //magnetx,y
 float magnetX, magnetY;
+Magnet magnet;
 //life
 int fishHealth=3;
 //points
 final int GAME_INIT_POINTS=0;
 int gamePoints=GAME_INIT_POINTS;
+//light
+Lights [] lights;
+//bads
+Bad[]bads;
+int badtime=0;
+int j=0;
+int time =0;
+int min = 0;
+int sec = 0;
+int animationFrame = 0;
+int points = 0;
+boolean isHit =false;
+float timer = 0;
+float [] lightsTimer;
+boolean [] lightsON;
 
 void setup() {
   size(1600, 900);
@@ -45,49 +64,69 @@ void setup() {
   background=loadImage("img/background.jpg");
   gamestart=loadImage("img/gamestart.png");
   bad=loadImage("img/bad.png");
-  bubble=loadImage("img/bubble.png");
+  baddown=loadImage("img/baddown.png");
+  badleft=loadImage("img/badleft.png");
+  badright=loadImage("img/badright.png");
+  badup=loadImage("img/badup.png");
+  bubbleing=loadImage("img/bubble.png");
   life=loadImage("img/life.png");
   life=loadImage("img/life.png");
-  rush=loadImage("img/rush.png");
-  magnet=loadImage("img/magnet.png");
+  rushing=loadImage("img/rush.png");
+  magneting=loadImage("img/magnet.png");
   fishS=loadImage("img/fishS.png");
   fishM=loadImage("img/fishM.png");
   fishL=loadImage("img/fishL.png");
-  rushfish=loadImage("img/rushfish.png");
-  magnetfish=loadImage("img/magnetfish.png");
-  bubblefish=loadImage("img/bubblefish.png");
-  //fish start place
+  rushfishS=loadImage("img/rushfishS.png");
+  rushfishM=loadImage("img/rushfishM.png");
+  rushfishL=loadImage("img/rushfishL.png");
+  magnetfishS=loadImage("img/magnetfishS.png");
+  magnetfishM=loadImage("img/magnetfishM.png");
+  magnetfishL=loadImage("img/magnetfishL.png");
+  bubblefishS=loadImage("img/bobfishS.png");
+  bubblefishM=loadImage("img/bobfishM.png");
+  bubblefishL=loadImage("img/bobfishL.png");
+  win=loadImage("img/win.jpg");
+  lose=loadImage("img/lose.jpg");
+  //fish start place INIT PLACE
   fishX=width/2-fishSSize/2;
   fishY=height/2-fishSSize/2;
-  //bad fish init place
-  // badX=
-  // badY=
+  //bad fish init place INIT PLACE
+  bads=new Bad[100];
+  badfishReborn();
 
-  //bubble init place
-  image(bubble,bubbleX,bubbleY);
-  // bubbleX=
-    bubbleX = random(1600);
-  // bubbleY=
-    bubbleY = random(900);
-  //rush init place
-   image(rush,rushX,rushY);
-  //rushX=
-    rushX = random(1600);
-  //rushY=
-    rushY = random(900);
-
-  //magnet init place
-  image(magnet,magnetX,magnetY);
-  //magnetX=
-    magnetX = random(1600);
-  // magnetY=
-    magnetY = random(900);
+  //rush init place INIT PLACE
+    rush = new Rush();
+  //bubble init place INIT PLACE
+    bubble = new Bubble();
+  //magnet init place INIT PLACE
+    magnet = new Magnet();
 
   //font
   // font=createFont("font/font.ttf", 56);
   //  textFont(font);
+
+  //light new array
+  lights = new Lights[10];
+  for (int i = 0; i<lights.length; i++) {
+    lights[i] = new Lights();
+  }
+  isHit =false;
+
+  //lights on
+  lightsON = new boolean[10];
+  for (int i = 0; i<lights.length; i++) {
+    lightsON[i] = false;
+  }
+
+  lightsTimer = new float[10];
+  for (int i = 0; i<lights.length; i++) {
+    lightsTimer[i] = 0;
+  }
 }
+
+
 void draw() {
+  animationFrame++;
   switch(gameState) {
   case GAME_START:
     image(gamestart, 0, 0);
@@ -101,17 +140,81 @@ void draw() {
     for (int i = 0; i < fishHealth; i++) {
       image(life, 40 + i * 120, 40);
     }
+
+    //light timer
+    for (int i = 0; i<lights.length; i++) {
+      lightsTimer[i]=floor(random(60));
+      if (lightsTimer[i]==30) {
+        lightsON[i] = true;
+      }
+    }
+
     //light
+    for (int i = 0; i<lights.length; i++) {
+      if (lightsON[i]) {
+        lights[i].sizes();
+        lights[i].LightColor();
+        lights[i].display();
+      }
+    }
 
+
+    //rush 
+      rush.display();
+      rush.checkCollision(fishSSize,fishSSize);
+     
     //magnet
-
+      magnet.display();
+      magnet.checkCollision(fishSSize,fishSSize);
+      
     //bubble
-
-    //rush
-
+      bubble.display();
+      bubble.checkCollision(fishSSize,fishSSize);
+      
     //bad
+    for (int i=0; i<100; i++) {
+      if (bads[i]!=null&&bads[i].isAlive ) {
+        bads[i].update();
+        bads[i].display();
+        bads[i].checkCollision();
+        bads[i].direction();
+      }
+    }
+
+   badtime++;
+    if (badtime>120) {
+      badtime=0;
+      badfishReborn();
+      break;
+    }
+
+
+    if (fishHealth<1) {
+      gameState=GAME_OVER;
+    }
+
 
     //fishS
+
+    PImage fishSize = fishS;
+    if (gamePoints>0) {
+      fishSize = fishS;
+    }
+    //fishM
+    if (gamePoints>20) {
+      fishSize = fishM;
+      fishSSize = 200;
+    }
+    //fishL
+    if (gamePoints>50) {
+      fishSize = fishL;
+      fishSSize = 250;
+    }
+
+    //fish image
+    image(fishSize, fishX, fishY);
+
+    //fish keyPress
     if (upPressed) {
       fishY-=fishSpeed;
       if (fishY<0)fishY=0;
@@ -128,29 +231,243 @@ void draw() {
       fishX+=fishSpeed;
       if (fishX+fishSSize>width)fishX=width-fishSSize;
     }
-    image(fishS, fishX, fishY);
-    //fishM
-    //fishL
+
+
+    //point
+    drawPoints();
+
+    //to gamewin case
+    if (gamePoints>=100) {
+      gameState = GAME_WIN;
+    }
     break;
+
   case GAME_WIN:
-    break;
-  case GAME_OVER:
+    
+  image(win,0,0);
+  if (mousePressed) {
+      gameState = GAME_RUN;
+    Lights [] lights; 
+    lights = new Lights[10];
+      
+      Bad[]bads;
+      bads=new Bad[100];
+  fishHealth=3;
+gamePoints=GAME_INIT_POINTS;
+
+
+badtime=0;
+
+time =0;
+min = 0;
+sec = 0;
+animationFrame = 0;
+points = 0;
+isHit =false;
+timer = 0;
+
+ fishX=width/2-fishSSize/2;
+  fishY=height/2-fishSSize/2;
+  
+  bubbleX=0;
+  
+  bubbleY=0;
+
+  rushX=0;
+     
+  rushY=0;
+
+  magnetX=0;
+  
+  magnetY=0;
+  
+  badtime++;
+      badtime=0;
+      
+      fishSize = fishS;
+      gamePoints=0;
+      fishX=width/2-fishSSize/2;
+      fishY=height/2-fishSSize/2;
+      
+    //light restart
+    for (int i = 0; i<lights.length; i++) {
+      gamePoints=0;
+      lightsON[i] = false;
+      points=0;
+     
+      
+    }
+    //badfish restart
+    badfishReborn();
     break;
   }
+
+  case GAME_OVER:
+  image(lose,0,0);
+  if (mousePressed) {
+      gameState = GAME_RUN;
+    Lights [] lights; 
+    lights = new Lights[10];
+      
+      Bad[]bads;
+      bads=new Bad[100];
+  fishHealth=3;
+gamePoints=GAME_INIT_POINTS;
+
+
+badtime=0;
+
+time =0;
+min = 0;
+sec = 0;
+animationFrame = 0;
+points = 0;
+isHit =false;
+timer = 0;
+
+ fishX=width/2-fishSSize/2;
+  fishY=height/2-fishSSize/2;
+  
+  bubbleX=0;
+ 
+  bubbleY=0;
+  
+  rushX=0;
+
+  rushY=0;
+
+  magnetX=0;
+
+  magnetY=0;
+
+ 
+      
+      badtime++;
+      badtime=0;
+      
+      fishSize = fishS;
+      gamePoints=0;
+      fishX=width/2-fishSSize/2;
+      fishY=height/2-fishSSize/2;
+      
+    //light restart
+    for (int i = 0; i<lights.length; i++) {
+      gamePoints=0;
+      lightsON[i] = false;
+      points=0;
+     
+      
+    }
+    //badfish restart
+    badfishReborn();
+    break;
+  }}}
+
+
+void badfishReborn() {
+  for (int i=0; i<100; i++) {
+    if (bads[i]==null||!bads[i].isAlive ) {
+      bads[i] = new Bad(random(width-150), random(height-150));
+      break;
+    }
+  }
 }
+
 void drawPoints() {
+
+  //add 1 point a second
+  if (animationFrame%60==0) {
+    points++;
+  }
+
+  //lights change to another places
+
+  for (int i = 0; i<lights.length; i++) {
+    if (lights[i].lightSize==60) {
+      if (lightsON[i]==true) {
+        points=0;
+        
+        lightsTimer[i]=floor(random(60));
+        lights[i].initSizes();
+        lights[i].initLightColor();
+        lights[i].lightX =floor(random(width-1));
+        lights[i].lightY =floor(random(height-1));
+      }
+    }
+  }
+
+  //text
+  gamePoints = addpoints(points);
   String pointsString=(gamePoints)+"points";
   textSize(56);
   textAlign(RIGHT, BOTTOM);
-  fill(0,0,120);
+  getColor();
   text(pointsString, width, height);
+
+  //time
+  time = floor(animationFrame/60);
+  sec = time;
+  String timeString="0";
+
+  if (time<60) {
+    sec = time;
+    min = 0;
+    timeString="0"+(min)+":0"+(sec);
+  }
+  if (time<60 && time>9) {
+    sec = time;
+    min = 0;
+    timeString="0"+(min)+":"+(sec);
+  }
+  if (time>60 && time<=69) {
+    sec = time-60;
+    min = 1;
+    timeString="0"+(min)+":0"+(sec);
+  }
+
+  if (time>69 && time<120) {
+    sec = time-60;
+    min = 1;
+    timeString="0"+(min)+":"+(sec);
+  }
+
+  textSize(56);
+  textAlign(LEFT, BOTTOM);
+  getColor();
+  text(timeString, 0, height);
 }
-void addpoints(float points) {
-  gamePoints+=points;
+
+
+int addpoints(int points) {
+  //boolean isHit (fish and lights)
+  for (int i = 0; i<lights.length; i++) {
+    float distance = dist(fishX+fishSSize/2, fishY+fishSSize/2, lights[i].lightX, lights[i].lightY);
+    if (distance<lights[i].lightSize/2+fishSSize/2-10) {
+      isHit = true;
+    } else {
+      isHit = false;
+    }
+
+    //addpoints & the lights change to another places
+    if (isHit) {
+      lights[i].lightX =floor(random(width-1));
+      lights[i].lightY =floor(random(height-1));
+      return(gamePoints+=points);
+    }
+  }
+  return(gamePoints);
 }
-/*color getColor() {
-  return;
-}*/
+void getColor() {
+  if (gamePoints>=20) {
+    fill(0, 0, 120);
+  }
+  if (gamePoints>=20) {
+    fill(255, 255, 255);
+  }
+  if (gamePoints>=50) {
+    fill(255, 255, 0);
+  }
+}
 
 void keyPressed() {
   switch(keyCode) {

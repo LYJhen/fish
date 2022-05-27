@@ -1,7 +1,7 @@
 class Rush{
   boolean isAlive;
-  float x;
-  float y;
+  float rushx;
+  float rushy;
   float w;
   float h;
  
@@ -9,15 +9,12 @@ class Rush{
 
 
 void display() {
-  image(img,x,y);
+  image(img,rushx,rushy);
   }
 
  void checkCollision(float w, float h) {
    if (isAlive==true) {
-     if (fishX+w >x&&
-        fishX < x+w&&
-        fishY+h > y &&
-        fishY < y+h ) {
+     if (fishX+w >rushx&&fishX < rushx+w&&fishY+h > rushy &&fishY < rushy+h ) {
           isAlive=false;
           fishSpeed=15;
         }
@@ -29,15 +26,15 @@ void display() {
 //}  
 
 Rush(){
-  x = random(width-150);
-  y = random(height-150);
+  rushx = random(width-150);
+  rushy = random(height-150);
   img = rushing;
 }  
 
 Rush(String filename){
   img = loadImage(filename);
-  x = random(width-150);
-  y = random(height-150);
+  rushx = random(width-150);
+  rushy = random(height-150);
 }  
   
 
